@@ -8,7 +8,7 @@ from aiohttp import web
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from environs import Env
 
-from bot_router import register_routes
+from bot_router_aiogram_dialog import register_routes
 
 logging.basicConfig(level=logging.INFO)
 

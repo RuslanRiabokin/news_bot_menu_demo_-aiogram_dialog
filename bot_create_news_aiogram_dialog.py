@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button, Row, Column, Multiselect
 from aiogram_dialog.widgets.text import Const, Format
 
-from states import MainDialogSG, SecondDialogSG
+from states_class_aiogram_dialog import MainDialogSG, SecondDialogSG
 
 
 async def go_second_dialog(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

@@ -3,10 +3,10 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, StartMode, setup_dialogs
 
-from bot_create_news import start_dialog
-from states import MainDialogSG
+from bot_create_news_aiogram_dialog import start_dialog
+from states_class_aiogram_dialog import MainDialogSG
 from subscription_list import current_subscriptions_dialog
-from edit_subscriptions import edit_subscription_dialog
+from edit_subscriptions_aiogram_dialog import edit_subscription_dialog
 
 basic_commands_router = Router()
 
