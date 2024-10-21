@@ -3,7 +3,7 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Const
 from states_class_aiogram_dialog import EditSubscriptions, SecondDialogSG
-from subscription_list import go_start
+from subscription_list_aiogram_dialog import go_start
 
 
 async def edit_publication_time(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
