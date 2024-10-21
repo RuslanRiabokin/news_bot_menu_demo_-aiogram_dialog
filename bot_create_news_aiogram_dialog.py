@@ -9,20 +9,6 @@ from aiogram_dialog.widgets.text import Const, Format
 
 from states_class_aiogram_dialog import MainDialogSG, SecondDialogSG
 
-# Вітальний текст
-welcome_text = (
-    "Вас вітає новинний бот 📰!\n\n"
-    "Наразі завдяки нашому боту ви можете:\n\n"
-    "1️⃣ Створити нову підписку ✅\n"
-    "2️⃣ Переглянути список підписок 📋\n"
-    "➕ Додати опитування до новини\n"
-    "␡ Видалити опитування\n"
-    "␡ Видалити підписку\n"
-    "♻️ Відновити підписку\n"
-    "📰 Змінити тип відображення новин\n"
-    "🧾🚀 Почати публікацію\n\n"
-    "Для доступу до інших функцій натисніть кнопку меню нижче."
-)
 
 async def go_second_dialog(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     """Перемикається на перше вікно другого діалогу"""
@@ -31,7 +17,7 @@ async def go_second_dialog(callback: CallbackQuery, button: Button, dialog_manag
 
 async def switch_to_first_subscription(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     """Перемикається на стан 'subscription' у першому діалозі"""
-    await dialog_manager.switch_to(state=MainDialogSG.start)
+    await dialog_manager.switch_to(state=MainDialogSG.menu)
 
 
 async def switch_to_first_lists(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -41,7 +27,7 @@ async def switch_to_first_lists(callback: CallbackQuery, button: Button, dialog_
 
 async def return_to_subscription(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     """Повертається до стану 'subscription' у першому діалозі"""
-    await dialog_manager.switch_to(state=MainDialogSG.start)
+    await dialog_manager.switch_to(state=MainDialogSG.menu)
 
 
 async def get_topics(dialog_manager: DialogManager, **kwargs):
@@ -78,7 +64,7 @@ async def correct_news_handler(
     """Хендлер, який спрацює, якщо користувач ввів коректну новину"""
     await message.answer(text=f"Ви ввели новину: {text}")
     # Перемикаємося назад на головне меню підписок
-    await dialog_manager.switch_to(state=MainDialogSG.start, show_mode=ShowMode.SEND)
+    await dialog_manager.switch_to(state=MainDialogSG.menu, show_mode=ShowMode.SEND)
 
 
 async def error_news_handler(
@@ -113,7 +99,9 @@ async def confirm_selected_topics(callback: CallbackQuery, button: Button, dialo
         await callback.message.answer("Ви не обрали жодної теми новин.", disable_notification=True)
 
     # Очищуємо стек і повертаємося до стартового меню з використанням show_mode=ShowMode.SEND
-    await dialog_manager.switch_to(state=MainDialogSG.start, show_mode=ShowMode.SEND)
+    await dialog_manager.switch_to(state=MainDialogSG.menu, show_mode=ShowMode.SEND)
+
+
 
 
 start_dialog = Dialog(
@@ -145,7 +133,7 @@ start_dialog = Dialog(
         Row(
             Button(Const('Переглянути Список підписок ▶️'), id='go_second_dialog', on_click=go_second_dialog),
         ),
-        state=MainDialogSG.start
+        state=MainDialogSG.menu
     ),
     # Вікно з вибором тем
     Window(

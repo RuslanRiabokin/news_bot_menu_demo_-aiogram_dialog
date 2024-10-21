@@ -87,7 +87,7 @@ async def back_to_subscriptions(callback: CallbackQuery, button: Button, dialog_
 
 async def go_start(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     """Повертає до початкового меню."""
-    await dialog_manager.start(state=MainDialogSG.start, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(state=MainDialogSG.menu, mode=StartMode.RESET_STACK)
 
 
 async def delete_subscription_message(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

@@ -2,7 +2,8 @@ from aiogram.fsm.state import State, StatesGroup
 
 class MainDialogSG(StatesGroup):
     welcome = State()
-    start = State()
+    menu = State()
+    menu = State()
     new_subscription = State()
     enter_news = State()
 
