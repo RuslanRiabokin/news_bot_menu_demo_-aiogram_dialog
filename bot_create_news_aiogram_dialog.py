@@ -121,7 +121,7 @@ start_dialog = Dialog(
         Row(
             Button(Const('Перейти до меню'), id='go_menu', on_click=switch_to_first_subscription),  # Кнопка для переходу в меню
         ),
-        state=MainDialogSG.welcome
+        state=MainDialogSG.start
     ),
     # Вікно з меню підписок
     Window(

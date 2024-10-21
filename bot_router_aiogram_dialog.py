@@ -16,7 +16,7 @@ menu_router = Router()  # Окремий роутер для команди /men
 @basic_commands_router.message(CommandStart())
 async def command_start_handler(message: Message, dialog_manager: DialogManager):
     """Запускає перший діалог при команді /start"""
-    await dialog_manager.start(MainDialogSG.welcome, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(MainDialogSG.start, mode=StartMode.RESET_STACK)
 
 # Хендлер для команди /menu
 @menu_router.message(Command("menu"))
