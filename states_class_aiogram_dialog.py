@@ -11,4 +11,5 @@ class SecondDialogSG(StatesGroup):
     second = State()
 
 class EditSubscriptions(StatesGroup):
+    select_language = State()
     edit = State()
