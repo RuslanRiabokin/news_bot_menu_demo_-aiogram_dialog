@@ -10,39 +10,6 @@ from states_class_aiogram_dialog import EditSubscriptions, SecondDialogSG
 from subscription_list_aiogram_dialog import go_start
 
 
-# Обробник вибору дати
-async def on_date_selected(callback: CallbackQuery, widget, manager: DialogManager, selected_date: date):
-    """Додавання або видалення обраної дати зі списку."""
-    selected_dates: List[date] = manager.dialog_data.get("selected_dates", [])
-
-    if selected_date in selected_dates:
-        selected_dates.remove(selected_date)  # Видаляємо, якщо дата вже була обрана
-    else:
-        selected_dates.append(selected_date)  # Додаємо нову дату
-
-    # Оновлюємо дані в діалозі
-    manager.dialog_data["selected_dates"] = selected_dates
-
-    # Формуємо повідомлення з вибраними датами
-    dates_text = ", ".join([str(d) for d in selected_dates])
-
-    # Оновлюємо текст повідомлення, щоб воно залишалося на екрані
-    await callback.message.edit_text(f"Вибрані дати: {dates_text}")
-
-
-# Календар для вибору дат
-calendar = Calendar(id="calendar", on_click=on_date_selected)
-
-
-# Обробник завершення вибору дат
-async def finish_selection(callback: CallbackQuery, button: Button, manager: DialogManager):
-    """Завершення вибору дат та виведення остаточного списку."""
-    selected_dates = manager.dialog_data.get("selected_dates", [])
-    dates_text = ", ".join([str(d) for d in selected_dates])
-    await callback.message.answer(f"Ваш остаточний вибір: {dates_text}")
-    await manager.done()
-
-
 # Обробники кнопок у меню редагування
 async def edit_publication_time(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await callback.message.answer("🕒 Час публікації буде змінено.")
@@ -71,6 +38,31 @@ async def back_to_subscription_details(callback: CallbackQuery, button: Button,
                                        dialog_manager: DialogManager):
     await dialog_manager.done()
     await dialog_manager.switch_to(SecondDialogSG.second)
+
+
+# Обробник вибору дати
+async def on_date_selected(callback: CallbackQuery, widget, manager: DialogManager, selected_date: date):
+    """Додавання або видалення обраної дати зі списку."""
+    selected_dates: List[date] = manager.dialog_data.setdefault("selected_dates", [])
+
+    if selected_date in selected_dates:
+        selected_dates.remove(selected_date)  # Видаляємо, якщо дата вже була обрана
+    else:
+        selected_dates.append(selected_date)  # Додаємо нову дату
+
+
+# Обробник завершення вибору дат
+async def finish_selection(callback: CallbackQuery, button: Button, manager: DialogManager):
+    """Завершення вибору дат та виведення остаточного списку."""
+    selected_dates = manager.dialog_data.get("selected_dates", [])
+    dates_text = ", ".join([str(d) for d in selected_dates])
+    await callback.message.answer(f"Ваш остаточний вибір: {dates_text}")
+    await manager.done()
+
+
+# Календар для вибору дат
+calendar = Calendar(id="calendar", on_click=on_date_selected)
+
 
 # Словник повідомлень різними мовами
 MESSAGES = {
