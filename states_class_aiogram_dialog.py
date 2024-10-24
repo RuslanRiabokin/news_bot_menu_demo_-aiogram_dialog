@@ -13,3 +13,5 @@ class SecondDialogSG(StatesGroup):
 class EditSubscriptions(StatesGroup):
     select_language = State()
     edit = State()
+    calendar = State()
+

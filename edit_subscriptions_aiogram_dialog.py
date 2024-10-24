@@ -1,10 +1,22 @@
+from datetime import date
+
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Button, Row, Group
+from aiogram_dialog.widgets.kbd import Button, Row, Group, Calendar
 from aiogram_dialog.widgets.text import Const
 
 from states_class_aiogram_dialog import EditSubscriptions, SecondDialogSG
 from subscription_list_aiogram_dialog import go_start
+
+
+# Обработчик выбора даты в календаре
+async def on_date_selected(callback: CallbackQuery, widget, manager: DialogManager, selected_date: date):
+    await callback.message.answer(f"Вы выбрали дату: {selected_date}")
+    await callback.answer()
+
+# Создаём календарь
+calendar = Calendar(id="calendar", on_click=on_date_selected)
+
 
 # Обробники дій з кнопками
 async def edit_publication_time(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -75,14 +87,25 @@ edit_subscription_window = Window(
     ),
     Row(
         Button(Const("Вибрати мову"), id="select_language", on_click=select_language),
+    Button(Const("Календар"), id="open_calendar", on_click=lambda c, b, d: d.switch_to(EditSubscriptions.calendar)),
     ),
     Button(Const("Повернутись назад"), id="back_button", on_click=back_to_subscription_details),
     Button(Const("Повернутися до початкового меню"), id="button_start", on_click=go_start),
     state=EditSubscriptions.edit,
 )
 
+
+# Окно с календарем
+calendar_window = Window(
+    Const("<b>Оберіть дату:</b>"),
+    calendar,  # Добавляем календарь в окно
+    Button(Const("Назад"), id="back_to_edit", on_click=lambda c, b, d: d.switch_to(EditSubscriptions.edit)),
+    state=EditSubscriptions.calendar,
+)
+
+
 # Об'єднання всіх вікон в один діалог
 edit_subscription_dialog = Dialog(
     edit_subscription_window,
-    select_language_window,
+    select_language_window, calendar_window,
 )
