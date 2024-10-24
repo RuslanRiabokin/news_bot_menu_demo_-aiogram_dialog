@@ -1,4 +1,5 @@
 from datetime import date
+from typing import List
 
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
@@ -9,16 +10,40 @@ from states_class_aiogram_dialog import EditSubscriptions, SecondDialogSG
 from subscription_list_aiogram_dialog import go_start
 
 
-# Обработчик выбора даты в календаре
+# Обробник вибору дати
 async def on_date_selected(callback: CallbackQuery, widget, manager: DialogManager, selected_date: date):
-    await callback.message.answer(f"Вы выбрали дату: {selected_date}")
-    await callback.answer()
+    """Додавання або видалення обраної дати зі списку."""
+    selected_dates: List[date] = manager.dialog_data.get("selected_dates", [])
 
-# Создаём календарь
+    if selected_date in selected_dates:
+        selected_dates.remove(selected_date)  # Видаляємо, якщо дата вже була обрана
+    else:
+        selected_dates.append(selected_date)  # Додаємо нову дату
+
+    # Оновлюємо дані в діалозі
+    manager.dialog_data["selected_dates"] = selected_dates
+
+    # Формуємо повідомлення з вибраними датами
+    dates_text = ", ".join([str(d) for d in selected_dates])
+
+    # Оновлюємо текст повідомлення, щоб воно залишалося на екрані
+    await callback.message.edit_text(f"Вибрані дати: {dates_text}")
+
+
+# Календар для вибору дат
 calendar = Calendar(id="calendar", on_click=on_date_selected)
 
 
-# Обробники дій з кнопками
+# Обробник завершення вибору дат
+async def finish_selection(callback: CallbackQuery, button: Button, manager: DialogManager):
+    """Завершення вибору дат та виведення остаточного списку."""
+    selected_dates = manager.dialog_data.get("selected_dates", [])
+    dates_text = ", ".join([str(d) for d in selected_dates])
+    await callback.message.answer(f"Ваш остаточний вибір: {dates_text}")
+    await manager.done()
+
+
+# Обробники кнопок у меню редагування
 async def edit_publication_time(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await callback.message.answer("🕒 Час публікації буде змінено.")
 
@@ -32,7 +57,22 @@ async def send_cat(callback: CallbackQuery, button: Button, dialog_manager: Dial
     await callback.message.answer("Ось ваш котик! 🐈")
     await callback.answer()
 
-# Словник перекладів повідомлень
+# Обробник вибору мови
+async def on_language_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    selected_language = button.widget_id
+    message = MESSAGES.get(selected_language, f"Selected language: {selected_language}")
+    await callback.message.answer(message)
+    await dialog_manager.switch_to(EditSubscriptions.edit)
+
+async def select_language(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(EditSubscriptions.select_language)
+
+async def back_to_subscription_details(callback: CallbackQuery, button: Button,
+                                       dialog_manager: DialogManager):
+    await dialog_manager.done()
+    await dialog_manager.switch_to(SecondDialogSG.second)
+
+# Словник повідомлень різними мовами
 MESSAGES = {
     "uk": "Ви обрали мову: Українська",
     "en": "You selected the language: English",
@@ -40,24 +80,7 @@ MESSAGES = {
     "de": "Sie haben die Sprache gewählt: Deutsch",
 }
 
-async def on_language_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    """Обробка вибору мови з відображенням повідомлення на вибраній мові."""
-    selected_language = button.widget_id  # ID кнопки як код мови
-    message = MESSAGES.get(selected_language, f"Selected language: {selected_language}")  # Беремо повідомлення або дефолтне
-
-    await callback.message.answer(message)  # Надсилаємо повідомлення на потрібній мові
-    await dialog_manager.switch_to(EditSubscriptions.edit)  # Повертаємося в меню редагування
-
-async def select_language(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    """Перехід до вікна вибору мови."""
-    await dialog_manager.switch_to(EditSubscriptions.select_language)
-
-async def back_to_subscription_details(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    """Повернення до деталей підписки."""
-    await dialog_manager.done()
-    await dialog_manager.switch_to(SecondDialogSG.second)
-
-# Вікно вибору мови
+# Вікно для вибору мови
 select_language_window = Window(
     Const("<b>Виберіть мову:</b>"),
     Group(
@@ -70,7 +93,8 @@ select_language_window = Window(
             Button(Const("Deutsch"), id="de", on_click=on_language_selected),
         ),
     ),
-    Button(Const("Назад"), id="back_to_edit", on_click=lambda c, b, d: d.switch_to(EditSubscriptions.edit)),
+    Button(Const("Назад"), id="back_to_edit",
+           on_click=lambda c, b, d: d.switch_to(EditSubscriptions.edit)),
     state=EditSubscriptions.select_language,
 )
 
@@ -78,7 +102,8 @@ select_language_window = Window(
 edit_subscription_window = Window(
     Const("<b>Опції редагування підписки</b>\n"),
     Row(
-        Button(Const("Змінити час публікації 🕒"), id="change_time", on_click=edit_publication_time),
+        Button(Const("Змінити час публікації 🕒"), id="change_time",
+               on_click=edit_publication_time),
         Button(Const("Призупинити публікацію ⏸"), id="pause_publication", on_click=pause_publication),
     ),
     Row(
@@ -87,25 +112,27 @@ edit_subscription_window = Window(
     ),
     Row(
         Button(Const("Вибрати мову"), id="select_language", on_click=select_language),
-    Button(Const("Календар"), id="open_calendar", on_click=lambda c, b, d: d.switch_to(EditSubscriptions.calendar)),
+        Button(Const("Календар"), id="open_calendar",
+               on_click=lambda c, b, d: d.switch_to(EditSubscriptions.calendar)),
     ),
     Button(Const("Повернутись назад"), id="back_button", on_click=back_to_subscription_details),
     Button(Const("Повернутися до початкового меню"), id="button_start", on_click=go_start),
     state=EditSubscriptions.edit,
 )
 
-
-# Окно с календарем
+# Вікно з календарем та кнопкою завершення
 calendar_window = Window(
-    Const("<b>Оберіть дату:</b>"),
-    calendar,  # Добавляем календарь в окно
+    Const("<b>Оберіть дати:</b>"),
+    calendar,
+    Button(Const("Завершити вибір"), id="finish", on_click=finish_selection),
     Button(Const("Назад"), id="back_to_edit", on_click=lambda c, b, d: d.switch_to(EditSubscriptions.edit)),
     state=EditSubscriptions.calendar,
 )
 
 
-# Об'єднання всіх вікон в один діалог
+# Об'єднання вікон у діалог
 edit_subscription_dialog = Dialog(
     edit_subscription_window,
-    select_language_window, calendar_window,
+    select_language_window,
+    calendar_window,
 )

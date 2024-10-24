@@ -1,5 +1,5 @@
+# bot_router_aiogram_dialog.py
 import asyncio
-
 from aiogram import Dispatcher, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
@@ -14,24 +14,39 @@ from edit_subscriptions_aiogram_dialog import edit_subscription_dialog
 basic_commands_router = Router()
 menu_router = Router()  # Окремий роутер для команди /menu
 
+async def clear_previous_messages(dialog_manager: DialogManager, message: Message):
+    """Видаляє всі повідомлення та завершує активний діалог."""
+    try:
+        # Завершуємо активний діалог, якщо він є
+        await dialog_manager.reset_stack()
+    except Exception as e:
+        print(f"Помилка при скиданні діалогу: {e}")
+
+    # Видаляємо останні повідомлення (наприклад, останні 10)
+    chat_id = message.chat.id
+    for i in range(10):  # Кількість повідомлень для видалення
+        try:
+            await message.bot.delete_message(chat_id, message.message_id - i)
+        except Exception:
+            continue  # Пропускаємо помилки, якщо повідомлення вже видалено
+
 # Хендлер для команди /start
 @basic_commands_router.message(CommandStart())
 async def command_start_handler(message: Message, dialog_manager: DialogManager):
     """Запускає перший діалог при команді /start"""
+    await clear_previous_messages(dialog_manager, message)
     await dialog_manager.start(MainDialogSG.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.DELETE_AND_SEND)
-    await message.delete()
 
 # Хендлер для команди /menu
 @menu_router.message(Command("menu"))
 async def menu_command_handler(message: Message, dialog_manager: DialogManager):
     """Хендлер для команди /menu, що відкриває вікно з меню підписок"""
-    await dialog_manager.start(MainDialogSG.menu, show_mode=ShowMode.DELETE_AND_SEND)
-    await message.delete()
-
+    await clear_previous_messages(dialog_manager, message)
+    await dialog_manager.start(MainDialogSG.menu, mode=StartMode.RESET_STACK, show_mode=ShowMode.DELETE_AND_SEND)
 
 @basic_commands_router.message()
 async def unknown_command_handler(message: Message, dialog_manager: DialogManager):
-    """Сообщает о неизвестной команде и сразу открывает меню."""
+    """Повідомляє про невідому команду та одразу відкриває меню."""
     reply = await message.answer(
         "Ця команда не відома, виберіть команду з меню або введіть /menu."
     )
@@ -43,8 +58,6 @@ async def unknown_command_handler(message: Message, dialog_manager: DialogManage
         mode=StartMode.RESET_STACK,
         show_mode=ShowMode.DELETE_AND_SEND
     )
-
-
 
 async def register_routes(dp: Dispatcher):
     # Реєстрація роутерів та діалогів
