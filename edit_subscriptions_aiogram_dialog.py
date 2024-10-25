@@ -1,13 +1,15 @@
 from datetime import date
 from typing import List
 
+from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Button, Row, Group, Calendar
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.text import Const, Format
 
 from states_class_aiogram_dialog import EditSubscriptions, SecondDialogSG
 from subscription_list_aiogram_dialog import go_start
+from custom_calendar import CustomCalendar, on_date_selected, selection_getter
 
 
 # Обробники кнопок у меню редагування
@@ -40,9 +42,9 @@ async def back_to_subscription_details(callback: CallbackQuery, button: Button,
     await dialog_manager.switch_to(SecondDialogSG.second)
 
 
-# Обробник вибору дати
-async def on_date_selected(callback: CallbackQuery, widget, manager: DialogManager, selected_date: date):
-    """Додавання або видалення обраної дати зі списку."""
+"""# Обробник вибору дати
+async def on_date_selected2(callback: CallbackQuery, widget, manager: DialogManager, selected_date: date):
+
     selected_dates: List[date] = manager.dialog_data.setdefault("selected_dates", [])
 
     if selected_date in selected_dates:
@@ -50,6 +52,8 @@ async def on_date_selected(callback: CallbackQuery, widget, manager: DialogManag
     else:
         selected_dates.append(selected_date)  # Додаємо нову дату
 
+    # Оновлюємо віджет для відображення обраних дат
+    await widget.manager().dialog().update()"""
 
 # Обробник завершення вибору дат
 async def finish_selection(callback: CallbackQuery, button: Button, manager: DialogManager):
@@ -58,11 +62,6 @@ async def finish_selection(callback: CallbackQuery, button: Button, manager: Dia
     dates_text = ", ".join([str(d) for d in selected_dates])
     await callback.message.answer(f"Ваш остаточний вибір: {dates_text}")
     await manager.done()
-
-
-# Календар для вибору дат
-calendar = Calendar(id="calendar", on_click=on_date_selected)
-
 
 # Словник повідомлень різними мовами
 MESSAGES = {
@@ -104,21 +103,27 @@ edit_subscription_window = Window(
     ),
     Row(
         Button(Const("Вибрати мову"), id="select_language", on_click=select_language),
-        Button(Const("Календар"), id="open_calendar",
-               on_click=lambda c, b, d: d.switch_to(EditSubscriptions.calendar)),
+Button(Const("Календар"), id="open_calendar", on_click=lambda c, b, d: d.switch_to(EditSubscriptions.calendar)),
     ),
     Button(Const("Повернутись назад"), id="back_button", on_click=back_to_subscription_details),
     Button(Const("Повернутися до початкового меню"), id="button_start", on_click=go_start),
     state=EditSubscriptions.edit,
 )
 
-# Вікно з календарем та кнопкою завершення
+
+# Вікно з кастомним календарем
 calendar_window = Window(
     Const("<b>Оберіть дати:</b>"),
-    calendar,
+    Format("\nSelected: {selected}", when=F["selected"]),
+    Format("\nNo dates selected", when=~F["selected"]),
+    CustomCalendar(
+        id="calendar",
+        on_click=on_date_selected,
+    ),
     Button(Const("Завершити вибір"), id="finish", on_click=finish_selection),
     Button(Const("Назад"), id="back_to_edit", on_click=lambda c, b, d: d.switch_to(EditSubscriptions.edit)),
     state=EditSubscriptions.calendar,
+    getter=selection_getter
 )
 
 
