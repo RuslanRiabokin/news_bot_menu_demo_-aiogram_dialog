@@ -12,7 +12,7 @@ from edit_subscriptions_aiogram_dialog import edit_subscription_dialog
 
 # Ініціалізація Router
 basic_commands_router = Router()
-menu_router = Router()  # Окремий роутер для команди /menu
+
 
 async def clear_previous_messages(dialog_manager: DialogManager, message: Message):
     """Видаляє всі повідомлення та завершує активний діалог."""
@@ -38,7 +38,7 @@ async def command_start_handler(message: Message, dialog_manager: DialogManager)
     await dialog_manager.start(MainDialogSG.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.DELETE_AND_SEND)
 
 # Хендлер для команди /menu
-@menu_router.message(Command("menu"))
+@basic_commands_router.message(Command("menu"))
 async def menu_command_handler(message: Message, dialog_manager: DialogManager):
     """Хендлер для команди /menu, що відкриває вікно з меню підписок"""
     await clear_previous_messages(dialog_manager, message)
@@ -62,6 +62,5 @@ async def unknown_command_handler(message: Message, dialog_manager: DialogManage
 async def register_routes(dp: Dispatcher):
     # Реєстрація роутерів та діалогів
     dp.include_router(basic_commands_router)
-    dp.include_router(menu_router)  # Додаємо роутер для /menu
     dp.include_routers(start_dialog, current_subscriptions_dialog, edit_subscription_dialog)
     setup_dialogs(dp)  # Налаштування системи діалогів
