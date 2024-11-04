@@ -1,8 +1,11 @@
 import aiosqlite
 from typing import List, Tuple
 
+from config import DB_PATH
+
+
 class AsyncDatabase:
-    def __init__(self, db_name='database.db'):
+    def __init__(self, db_name=DB_PATH):
         self.db_name = db_name
 
     async def get_subscriptions(self, user_id: int) -> List[Tuple[int, str, str, str]]:
